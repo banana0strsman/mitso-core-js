@@ -12,7 +12,7 @@
  * Returns the functions composition of two specified functions f(x) and g(x).
  * The result of compose is to be a function of one argument, (lets call the argument x),
  * which works like applying function f to the result of applying function g to x, i.e.
- *  getComposition(f,g)(x) = f(g(x))
+ * getComposition(f,g)(x) = f(g(x))
  *
  * @param {Function} f
  * @param {Function} g
@@ -22,8 +22,10 @@
  *   getComposition(Math.sin, Math.asin)(x) => Math.sin(Math.asin(x))
  *
  */
-function getComposition(/* f, g */) {
-  throw new Error('Not implemented');
+function getComposition(f, g) {
+  return function (x) {
+    return f(g(x));
+  };
 }
 
 /**
@@ -42,25 +44,34 @@ function getComposition(/* f, g */) {
  *   power05(16) => 4
  *
  */
-function getPowerFunction(/* exponent */) {
-  throw new Error('Not implemented');
+function getPowerFunction(exponent) {
+  return function (x) {
+    return x ** exponent;
+  };
 }
 
 /**
  * Returns the polynom function of one argument based on specified coefficients.
  * See: https://en.wikipedia.org/wiki/Polynomial#Definition
  *
- * @params {integer}
+ * @param {...number} numbers
  * @return {Function}
  *
  * @example
  *   getPolynom(2,3,5) => y = 2*x^2 + 3*x + 5
- *   getPolynom(1,-3)  => y = x - 3
+ *   getPolynom(1,-3) => y = x - 3
  *   getPolynom(8)     => y = 8
  *   getPolynom()      => null
  */
-function getPolynom() {
-  throw new Error('Not implemented');
+function getPolynom(...args) {
+  if (args.length === 0) return null;
+  return function (x) {
+    let result = 0;
+    for (let i = 0; i < args.length; i += 1) {
+      result += args[i] * x ** (args.length - 1 - i);
+    }
+    return result;
+  };
 }
 
 /**
@@ -77,8 +88,19 @@ function getPolynom() {
  *   ...
  *   memoizer() => the same random number  (next run, returns the previous cached result)
  */
-function memoize(/* func */) {
-  throw new Error('Not implemented');
+function memoize(func) {
+  const cache = new Map();
+
+  return function (...args) {
+    const key = JSON.stringify(args);
+
+    if (cache.has(key)) {
+      return cache.get(key);
+    }
+    const result = func.apply(this, args);
+    cache.set(key, result);
+    return result;
+  };
 }
 
 /**
@@ -96,8 +118,20 @@ function memoize(/* func */) {
  * }, 2);
  * retryer() => 2
  */
-function retry(/* func, attempts */) {
-  throw new Error('Not implemented');
+function retry(func, attempts) {
+  return function (...args) {
+    let error;
+
+    for (let i = 0; i < attempts; i + 1) {
+      try {
+        return func.apply(this, args);
+      } catch (e) {
+        error = e;
+      }
+    }
+
+    throw error;
+  };
 }
 
 /**
@@ -123,8 +157,18 @@ function retry(/* func, attempts */) {
  * cos(3.141592653589793) ends
  *
  */
-function logger(/* func, logFunc */) {
-  throw new Error('Not implemented');
+function logger(func, logFunc) {
+  return function (...args) {
+    const argString = args.map((arg) => JSON.stringify(arg)).join(',');
+    const functionName = func.name || 'anonymous';
+    const formattedFunctionCall = `${functionName}(${argString})`;
+
+    logFunc(`${formattedFunctionCall} starts`);
+    const result = func.apply(this, args);
+    logFunc(`${formattedFunctionCall} ends`);
+
+    return result;
+  };
 }
 
 /**
@@ -134,14 +178,17 @@ function logger(/* func, logFunc */) {
  * @return {Function}
  *
  * @example
- *   const fn = function(x1,x2,x3,x4) { return  x1 + x2 + x3 + x4; };
+ *   const fn = function(x1,x2,x3,x4) { return x1 + x2 + x3 + x4; };
  *   partialUsingArguments(fn, 'a')('b','c','d') => 'abcd'
  *   partialUsingArguments(fn, 'a','b')('c','d') => 'abcd'
  *   partialUsingArguments(fn, 'a','b','c')('d') => 'abcd'
  *   partialUsingArguments(fn, 'a','b','c','d')() => 'abcd'
  */
-function partialUsingArguments(/* fn, ...args1 */) {
-  throw new Error('Not implemented');
+function partialUsingArguments(fn, ...args1) {
+  return function (...args2) {
+    const combinedArgs = args1.concat(args2);
+    return fn.apply(this, combinedArgs);
+  };
 }
 
 /**
@@ -161,8 +208,13 @@ function partialUsingArguments(/* fn, ...args1 */) {
  *   getId4() => 7
  *   getId10() => 11
  */
-function getIdGeneratorFunction(/* startFrom */) {
-  throw new Error('Not implemented');
+function getIdGeneratorFunction(startFrom) {
+  let id = startFrom;
+  return function () {
+    const currentId = id;
+    id += 1;
+    return currentId;
+  };
 }
 
 module.exports = {
